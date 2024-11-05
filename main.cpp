@@ -1,7 +1,6 @@
 #include <iostream>
 #include <unordered_map>
 #include <functional>
-#include <string.h>
 
 void viewSummary() {
     std::cout << "Viewing summary...\n";
