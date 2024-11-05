@@ -1,6 +1,6 @@
 #include <iostream>
 #include <unordered_map>
-#include <functional>
+#include <functional> 
 
 void viewSummary() {
     std::cout << "Viewing summary...\n";
@@ -48,6 +48,27 @@ void tutorials() {
     std::cout << "tutor...\n";
 }
 void contactSupport() {
+    std::cout << "support...\n";
+}
+void syncWithBankAccounts() {
+    std::cout << "support...\n";
+}
+void setFinancialGoals() {
+    std::cout << "support...\n";
+}
+void spendingInsights() {
+    std::cout << "support...\n";
+}
+void predictiveAnalytics() {
+    std::cout << "support...\n";
+}
+void sharedBudgeting() {
+    std::cout << "support...\n";
+}
+void exportData() {
+    std::cout << "support...\n";
+}
+void importData() {
     std::cout << "support...\n";
 }
 
@@ -116,6 +137,42 @@ void settings() {
     }
 }
 
+void advancedFeatures() {
+    std::unordered_map<std::string, std::function<void()>> menu = {
+    {"1", syncWithBankAccounts},
+    {"2", setFinancialGoals},
+    {"3", spendingInsights},
+    {"4", predictiveAnalytics},
+    {"5", sharedBudgeting},
+    {"6", exportData},
+    {"7", importData}
+    };
+
+    std::string choice;
+    while (true) {
+        std::cout << "\n-------- Advanced Features --------\n";
+        std::cout << "1. Sync With Bank Accounts\n";
+        std::cout << "2. Set Financial Goals\n";
+        std::cout << "3. Spending Insights\n";
+        std::cout << "4. Predictive Analytics\n";
+        std::cout << "5. Shared Budgeting\n";
+        std::cout << "6. Export Data\n";
+        std::cout << "7. Import Data\n";
+        std::cout << "8. Back to Main Menu\n";
+        std::cout << "Enter your choice: ";
+        std::cin >> choice;
+        auto it = menu.find(choice);
+        if (it != menu.end()) {
+            it->second();
+        } 
+		else {
+            std::cout << "Returning to Main Menu\n";
+            return;
+        }
+    }
+}
+
+
 void help() {
     std::unordered_map<std::string, std::function<void()>> menu = {
     {"1", userGuide},
@@ -151,7 +208,7 @@ int main() {
         {"4", deleteTransaction},
         {"5", reports},
         {"6", settings},
-        //{"7", advancedFeatures},
+        {"7", advancedFeatures},
         {"8", help},
         {"9", exitProgram}
     };
