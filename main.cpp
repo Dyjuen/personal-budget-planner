@@ -1,6 +1,104 @@
 #include <iostream>
 #include <unordered_map>
-#include <functional> 
+#include <functional>
+#include <string>
+#include <fstream>
+
+enum class ItemType {
+    Asset,
+    Liability,
+    Income,
+    Expense
+};
+
+class FinancialItem {
+private:
+    ItemType type;
+    std::string name;
+    double amount;
+
+public:
+    FinancialItem(ItemType type, const std::string& name, double amount)
+        : type(type), name(name), amount(amount) {}
+
+    void display() const {
+        std::string typeName = getTypeName();
+        std::cout << typeName << " - " << name << ": " << amount << std::endl;
+    }
+
+    std::string getTypeName() const {
+        switch (type) {
+            case ItemType::Asset: return "Asset";
+            case ItemType::Liability: return "Liability";
+            case ItemType::Income: return "Income";
+            case ItemType::Expense: return "Expense";
+        }
+        return "";
+    }
+
+    void serialize(std::ofstream& out) const {
+        out << getTypeName() << "," << name << "," << amount << "\n";
+    }
+
+    static FinancialItem deserialize(std::istream& in) {
+        std::string typeName, name;
+        double amount;
+
+        std::getline(in, typeName, ',');
+        std::getline(in, name, ',');
+        in >> amount;
+        in.ignore(); // Ignore newline
+
+        ItemType type;
+        if (typeName == "Asset") type = ItemType::Asset;
+        else if (typeName == "Liability") type = ItemType::Liability;
+        else if (typeName == "Income") type = ItemType::Income;
+        else if (typeName == "Expense") type = ItemType::Expense;
+        else throw std::invalid_argument("Invalid item type");
+
+        return FinancialItem(type, name, amount);
+    }
+};
+
+void serializeAllItems(const std::vector<FinancialItem>& items, const std::string& filename) {
+    std::ofstream out(filename);
+    for (const auto& item : items) {
+        item.serialize(out);
+    }
+}
+
+void deserializeAllItems(std::vector<FinancialItem>& items, const std::string& filename) {
+    std::ifstream in(filename);
+    while (in.peek() != EOF) {
+        items.push_back(FinancialItem::deserialize(in));
+    }
+}
+
+struct GlobalState {
+    std::vector<FinancialItem> items;
+
+    GlobalState() {
+        // Try to load items from file
+        load();
+    }
+
+    void save() const {
+        serializeAllItems(items, "financial_items.txt");
+    }
+
+    void load() {
+        try {
+            deserializeAllItems(items, "financial_items.txt");
+        } catch (const std::exception& e) {
+            std::cerr << "Error loading items: " << e.what() << std::endl;
+        }
+    }
+};
+
+
+GlobalState globalState;
+
+
 
 void viewSummary() {
     std::cout << "Viewing summary...\n";
