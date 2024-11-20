@@ -3,6 +3,41 @@
 #include <functional>
 #include <string>
 #include <fstream>
+#include <vector>
+#include <stdexcept>
+#include <iomanip>
+#include <sstream>
+
+const std::string& CURRENCY = "IDR";
+std::string formatIDR(double amount) {
+    std::ostringstream oss;
+    oss << std::fixed << std::setprecision(0) << amount;
+    std::string numStr = oss.str();
+    int n = numStr.length() - 1;
+    int insertPosition = n - 2;
+
+    while (insertPosition > 0) {
+        numStr.insert(insertPosition, ".");
+        insertPosition -= 3;
+    }
+
+    return "IDR " + numStr;
+}
+std::string formatCurrency(double amount) {
+    std::ostringstream oss;
+
+
+    if (CURRENCY == "IDR") {
+        oss << formatIDR(amount);
+    } else if (CURRENCY == "USD") {
+        oss.imbue(std::locale("en_US.UTF-8")); // Use the US locale for thousands separator
+        oss << "USD " << std::fixed << std::setprecision(2) << amount;
+    } else {
+        return "Unsupported currency";
+    }
+
+    return oss.str();
+}
 
 enum class ItemType {
     Asset,
@@ -26,7 +61,7 @@ public:
         std::cout << typeName << " - " << name << ": " << amount << std::endl;
     }
 
-    std::string getTypeName() const {
+    [[nodiscard]] std::string getTypeName() const {
         switch (type) {
             case ItemType::Asset: return "Asset";
             case ItemType::Liability: return "Liability";
@@ -38,6 +73,14 @@ public:
 
     void serialize(std::ofstream& out) const {
         out << getTypeName() << "," << name << "," << amount << "\n";
+    }
+
+    [[nodiscard]] ItemType getType() const {
+        return type;
+    }
+
+    [[nodiscard]] double getAmount() const {
+        return amount;
     }
 
     static FinancialItem deserialize(std::istream& in) {
@@ -78,110 +121,211 @@ struct GlobalState {
     std::vector<FinancialItem> items;
 
     GlobalState() {
-        // Try to load items from file
         load();
     }
 
     void save() const {
-        serializeAllItems(items, "financial_items.txt");
+        serializeAllItems(items, "financial_items.csv");
     }
 
     void load() {
         try {
-            deserializeAllItems(items, "financial_items.txt");
+            deserializeAllItems(items, "financial_items.csv");
         } catch (const std::exception& e) {
             std::cerr << "Error loading items: " << e.what() << std::endl;
         }
     }
 };
 
-
 GlobalState globalState;
 
-
-
 void viewSummary() {
-    std::cout << "Viewing summary...\n";
+    double totalAssets = 0.0;
+    double totalLiabilities = 0.0;
+    double totalIncome = 0.0;
+    double totalExpenses = 0.0;
+
+    for (const auto& item : globalState.items) {
+        switch (item.getType()) {
+            case ItemType::Asset:
+                totalAssets += item.getAmount();
+            break;
+            case ItemType::Liability:
+                totalLiabilities += item.getAmount();
+            break;
+            case ItemType::Income:
+                totalIncome += item.getAmount();
+            break;
+            case ItemType::Expense:
+                totalExpenses += item.getAmount();
+            break;
+        }
+    }
+
+    std::cout << "Summary:\n";
+    std::cout << "Total Assets: " << formatCurrency(totalAssets) << "\n";
+    std::cout << "Total Liabilities: " << formatCurrency(totalLiabilities) << "\n";
+    std::cout << "Total Income: " << formatCurrency(totalIncome) << "\n";
+    std::cout << "Total Expenses: " << formatCurrency(totalExpenses) << "\n";
 }
 
 void addTransaction() {
     std::cout << "Adding transaction...\n";
+    std::string name;
+    double amount;
+    int typeInt;
+    std::cout << "Enter type (0: Asset, 1: Liability, 2: Income, 3: Expense): ";
+    std::cin >> typeInt;
+    std::cout << "Enter name: ";
+    std::cin >> name;
+    std::cout << "Enter amount: ";
+    std::cin >> amount;
+
+    ItemType type = static_cast<ItemType>(typeInt);
+    globalState.items.emplace_back(type, name, amount);
+    globalState.save();
 }
 
 void editTransaction() {
     std::cout << "Editing transaction...\n";
+    std::string name;
+    std::cout << "Enter the name of the transaction to edit: ";
+    std::cin >> name;
+
+    for (auto& item : globalState.items) {
+        if (item.getTypeName() == name) {
+            double newAmount;
+            std::cout << "Enter new amount: ";
+            std::cin >> newAmount;
+            item = FinancialItem(item.getType(), name, newAmount);
+            globalState.save();
+            return;
+        }
+    }
+    std::cout << "Transaction not found.\n";
 }
 
 void deleteTransaction() {
     std::cout << "Deleting transaction...\n";
+    std::string name;
+    std::cout << "Enter the name of the transaction to delete: ";
+    std::cin >> name;
+
+    auto it = std::remove_if(globalState.items.begin(), globalState.items.end(),
+                             [&name](const FinancialItem& item) { return item.getTypeName() == name; });
+    if (it != globalState.items.end()) {
+        globalState.items.erase(it, globalState.items.end());
+        globalState.save();
+        std::cout << "Transaction deleted.\n";
+    } else {
+        std::cout << "Transaction not found.\n";
+    }
 }
+
 void monthlyReport() {
-    std::cout << "Deleting transaction...\n";
+    std::cout << "Generating monthly report...\n";
+    // Implement report generation logic here
 }
+
 void annualReport() {
-    std::cout << "Deleting transaction...\n";
+    std::cout << "Generating annual report...\n";
+    // Implement report generation logic here
 }
+
 void incomeVsExpenses() {
-    std::cout << "Deleting transaction...\n";
+    std::cout << "Generating income vs expenses report...\n";
+    // Implement report generation logic here
 }
+
 void assetAndLiabilityBreakdown() {
-    std::cout << "Deleting transaction...\n";
+    std::cout << "Generating asset and liability breakdown...\n";
+    // Implement breakdown logic here
 }
+
 void manageCategories() {
-    std::cout << "Categories...\n";
+    std::cout << "Managing categories...\n";
+    // Implement category management here
 }
+
 void setBudgetLimits() {
-    std::cout << "Limits...\n";
+    std::cout << "Setting budget limits...\n";
+    // Implement budget limit setting here
 }
+
 void notificationPreferences() {
-    std::cout << "Notifs...\n";
+    std::cout << "Setting notification preferences...\n";
+    // Implement notification preference setting here
 }
+
 void securitySettings() {
-    std::cout << "security...\n";
+    std::cout << "Adjusting security settings...\n";
+    // Implement security settings here
 }
+
 void userGuide() {
-    std::cout << "guide...\n";
+    std::cout << "Displaying user guide...\n";
+    // Implement user guide display here
 }
+
 void tutorials() {
-    std::cout << "tutor...\n";
+    std::cout << "Displaying tutorials...\n";
+    // Implement tutorials display here
 }
+
 void contactSupport() {
-    std::cout << "support...\n";
+    std::cout << "Contacting support...\n";
+    // Implement support contact here
 }
+
 void syncWithBankAccounts() {
-    std::cout << "support...\n";
+    std::cout << "Syncing with bank accounts...\n";
+    // Implement bank account sync here
 }
+
 void setFinancialGoals() {
-    std::cout << "support...\n";
+    std::cout << "Setting financial goals...\n";
+    // Implement financial goals setting here
 }
+
 void spendingInsights() {
-    std::cout << "support...\n";
+    std::cout << "Generating spending insights...\n";
+    // Implement spending insights here
 }
+
 void predictiveAnalytics() {
-    std::cout << "support...\n";
+    std::cout << "Performing predictive analytics...\n";
+    // Implement predictive analytics here
 }
+
 void sharedBudgeting() {
-    std::cout << "support...\n";
+    std::cout << "Managing shared budgeting...\n";
+    // Implement shared budgeting here
 }
+
 void exportData() {
-    std::cout << "support...\n";
+    std::cout << "Exporting data...\n";
+    // Implement data export here
 }
+
 void importData() {
-    std::cout << "support...\n";
+    std::cout << "Importing data...\n";
+    // Implement data import here
 }
 
 void exitProgram() {
     std::cout << "Exiting program...\n";
+    globalState.save();
     exit(0);
 }
 
 
+
 void reports() {
     std::unordered_map<std::string, std::function<void()>> menu = {
-    {"1", monthlyReport},
-    {"2", annualReport},
-    {"3", incomeVsExpenses},
-    {"4", assetAndLiabilityBreakdown},
+        {"1", monthlyReport},
+        {"2", annualReport},
+        {"3", incomeVsExpenses},
+        {"4", assetAndLiabilityBreakdown},
     };
 
     std::string choice;
@@ -197,21 +341,19 @@ void reports() {
         auto it = menu.find(choice);
         if (it != menu.end()) {
             it->second();
-        } 
-		else {
+        } else {
             std::cout << "Returning to Main Menu\n";
             return;
         }
     }
 }
 
-
 void settings() {
     std::unordered_map<std::string, std::function<void()>> menu = {
-    {"1", manageCategories},
-    {"2", setBudgetLimits},
-    {"3", notificationPreferences},
-    {"4", securitySettings},
+        {"1", manageCategories},
+        {"2", setBudgetLimits},
+        {"3", notificationPreferences},
+        {"4", securitySettings},
     };
 
     std::string choice;
@@ -227,8 +369,7 @@ void settings() {
         auto it = menu.find(choice);
         if (it != menu.end()) {
             it->second();
-        } 
-		else {
+        } else {
             std::cout << "Returning to Main Menu\n";
             return;
         }
@@ -237,13 +378,13 @@ void settings() {
 
 void advancedFeatures() {
     std::unordered_map<std::string, std::function<void()>> menu = {
-    {"1", syncWithBankAccounts},
-    {"2", setFinancialGoals},
-    {"3", spendingInsights},
-    {"4", predictiveAnalytics},
-    {"5", sharedBudgeting},
-    {"6", exportData},
-    {"7", importData}
+        {"1", syncWithBankAccounts},
+        {"2", setFinancialGoals},
+        {"3", spendingInsights},
+        {"4", predictiveAnalytics},
+        {"5", sharedBudgeting},
+        {"6", exportData},
+        {"7", importData}
     };
 
     std::string choice;
@@ -262,25 +403,23 @@ void advancedFeatures() {
         auto it = menu.find(choice);
         if (it != menu.end()) {
             it->second();
-        } 
-		else {
+        } else {
             std::cout << "Returning to Main Menu\n";
             return;
         }
     }
 }
 
-
 void help() {
     std::unordered_map<std::string, std::function<void()>> menu = {
-    {"1", userGuide},
-    {"2", tutorials},
-    {"3", contactSupport}
+        {"1", userGuide},
+        {"2", tutorials},
+        {"3", contactSupport}
     };
 
     std::string choice;
     while (true) {
-        std::cout << "\n-------- Settings --------\n";
+        std::cout << "\n-------- Help --------\n";
         std::cout << "1. User Guide\n";
         std::cout << "2. Tutorials\n";
         std::cout << "3. Contact Support\n";
@@ -290,8 +429,7 @@ void help() {
         auto it = menu.find(choice);
         if (it != menu.end()) {
             it->second();
-        } 
-		else {
+        } else {
             std::cout << "Returning to Main Menu\n";
             return;
         }
@@ -313,7 +451,6 @@ int main() {
 
     std::string choice;
     while (true) {
-        // Display the menu
         std::cout << "\n-------- Main Menu --------\n";
         std::cout << "1. View Summary\n";
         std::cout << "2. Add Transaction\n";
@@ -327,7 +464,6 @@ int main() {
         std::cout << "Enter your choice: ";
         std::cin >> choice;
 
-        // Execute the corresponding function
         auto it = menu.find(choice);
         if (it != menu.end()) {
             it->second();
