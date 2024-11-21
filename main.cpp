@@ -358,126 +358,28 @@ void importData() {
     // Implement data import here
 }
 
+void saveProgram() {
+    globalState.save();
+}
+
 void exitProgram() {
     std::cout << "Exiting program...\n";
-    globalState.save();
+    saveProgram();
     exit(0);
 }
 
 
 
-void reports() {
-    std::unordered_map<std::string, std::function<void()>> menu = {
-        {"1", monthlyReport},
-        {"2", annualReport},
-        {"3", incomeVsExpenses},
-        {"4", assetAndLiabilityBreakdown},
-    };
-
-    std::string choice;
-    while (true) {
-        std::cout << "\n-------- Reports --------\n";
-        std::cout << "1. Monthly Report\n";
-        std::cout << "2. Annual Reports\n";
-        std::cout << "3. Income vs. Expenses\n";
-        std::cout << "4. Asset and Liability Breakdown\n";
-        std::cout << "5. Back to Main Menu\n";
-        std::cout << "Enter your choice: ";
-        std::cin >> choice;
-        auto it = menu.find(choice);
-        if (it != menu.end()) {
-            it->second();
-        } else {
-            std::cout << "Returning to Main Menu\n";
-            return;
-        }
-    }
-}
-
-void settings() {
-    std::unordered_map<std::string, std::function<void()>> menu = {
-        {"1", manageCategories},
-        {"2", setBudgetLimits},
-        {"3", notificationPreferences},
-        {"4", securitySettings},
-    };
-
-    std::string choice;
-    while (true) {
-        std::cout << "\n-------- Settings --------\n";
-        std::cout << "1. Manage Categories\n";
-        std::cout << "2. Set Budget Limits\n";
-        std::cout << "3. Notification Preferences\n";
-        std::cout << "4. Security Settings\n";
-        std::cout << "5. Back to Main Menu\n";
-        std::cout << "Enter your choice: ";
-        std::cin >> choice;
-        auto it = menu.find(choice);
-        if (it != menu.end()) {
-            it->second();
-        } else {
-            std::cout << "Returning to Main Menu\n";
-            return;
-        }
-    }
-}
-
-void advancedFeatures() {
-    std::unordered_map<std::string, std::function<void()>> menu = {
-        {"1", syncWithBankAccounts},
-        {"2", setFinancialGoals},
-        {"3", spendingInsights},
-        {"4", predictiveAnalytics},
-        {"5", sharedBudgeting},
-        {"6", exportData},
-        {"7", importData}
-    };
-
-    std::string choice;
-    while (true) {
-        std::cout << "\n-------- Advanced Features --------\n";
-        std::cout << "1. Sync With Bank Accounts\n";
-        std::cout << "2. Set Financial Goals\n";
-        std::cout << "3. Spending Insights\n";
-        std::cout << "4. Predictive Analytics\n";
-        std::cout << "5. Shared Budgeting\n";
-        std::cout << "6. Export Data\n";
-        std::cout << "7. Import Data\n";
-        std::cout << "8. Back to Main Menu\n";
-        std::cout << "Enter your choice: ";
-        std::cin >> choice;
-        auto it = menu.find(choice);
-        if (it != menu.end()) {
-            it->second();
-        } else {
-            std::cout << "Returning to Main Menu\n";
-            return;
-        }
-    }
-}
-
-void help() {
-    std::vector<std::pair<std::string, std::function<void()> > > menu = {
-        {"User Guide", userGuide},
-        {"Tutorials", tutorials},
-        {"Contact Support", contactSupport}
-    };
-
-    displayMenu(menu);
-    waitToContinue();
-}
 
 
 int main() {
+    std::atexit(saveProgram);
+
     std::vector<std::pair<std::string, std::function<void()> > > menu = {
         {"View Summary", viewSummary},
         {"Add Transaction", addTransaction},
         {"Edit Transaction", editTransaction},
         {"Delete Transaction", deleteTransaction},
-        {"Reports", reports},
-        {"Settings", settings},
-        {"Advanced Features", advancedFeatures},
-        {"Help", help},
         {"Exit", exitProgram}
     };
 
