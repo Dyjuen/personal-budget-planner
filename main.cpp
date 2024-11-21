@@ -159,7 +159,6 @@ void waitToContinue() {
 void displayMenu(const std::vector<std::pair<std::string, std::function<void()> > > &menu) {
     std::string choice;
     while (true) {
-        clearScreen();
         std::cout << "\n-------- Main Menu --------\n";
         for (size_t i = 0; i < menu.size(); ++i) {
             std::cout << i + 1 << ". " << menu[i].first << "\n";
@@ -180,6 +179,7 @@ void displayMenu(const std::vector<std::pair<std::string, std::function<void()> 
             std::cout << "Invalid input. Please enter a number.\n";
         }
         waitToContinue();
+        clearScreen();
     }
     waitToContinue();
 }
@@ -358,8 +358,14 @@ void importData() {
     // Implement data import here
 }
 
+// Save the program state to disk
 void saveProgram() {
     globalState.save();
+}
+
+// Load the program state from disk
+void loadProgram() {
+    globalState.load();
 }
 
 void exitProgram() {
@@ -373,6 +379,7 @@ void exitProgram() {
 
 
 int main() {
+    loadProgram();
     std::atexit(saveProgram);
 
     std::vector<std::pair<std::string, std::function<void()> > > menu = {
@@ -385,6 +392,8 @@ int main() {
 
 
     while (true) {
+        clearScreen();
+        viewSummary();
         displayMenu(menu);
     }
 
