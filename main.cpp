@@ -156,6 +156,35 @@ void waitToContinue() {
     std::cout << std::endl;
 }
 
+void displayMenu(const std::vector<std::pair<std::string, std::function<void()> > > &menu) {
+    std::string choice;
+    while (true) {
+        clearScreen();
+        std::cout << "\n-------- Main Menu --------\n";
+        for (size_t i = 0; i < menu.size(); ++i) {
+            std::cout << i + 1 << ". " << menu[i].first << "\n";
+        }
+        std::cout << "Enter your choice: ";
+        std::cin >> choice;
+
+        try {
+            int index = std::stoi(choice) - 1;
+            if (index >= 0 && index < static_cast<int>(menu.size())) {
+                clearScreen();
+                menu[index].second();
+                break;
+            } else {
+                std::cout << "Invalid choice. Please try again.\n";
+            }
+        } catch (const std::exception &) {
+            std::cout << "Invalid input. Please enter a number.\n";
+        }
+
+        waitToContinue();
+    }
+}
+
+
 void viewSummary() {
     double totalAssets = 0.0;
     double totalLiabilities = 0.0;
@@ -428,29 +457,14 @@ void advancedFeatures() {
 }
 
 void help() {
-    std::unordered_map<std::string, std::function<void()>> menu = {
-        {"1", userGuide},
-        {"2", tutorials},
-        {"3", contactSupport}
+    std::vector<std::pair<std::string, std::function<void()> > > menu = {
+        {"User Guide", userGuide},
+        {"Tutorials", tutorials},
+        {"Contact Support", contactSupport}
     };
 
-    std::string choice;
-    while (true) {
-        std::cout << "\n-------- Help --------\n";
-        std::cout << "1. User Guide\n";
-        std::cout << "2. Tutorials\n";
-        std::cout << "3. Contact Support\n";
-        std::cout << "4. Back to Main Menu\n";
-        std::cout << "Enter your choice: ";
-        std::cin >> choice;
-        auto it = menu.find(choice);
-        if (it != menu.end()) {
-            it->second();
-        } else {
-            std::cout << "Returning to Main Menu\n";
-            return;
-        }
-    }
+    displayMenu(menu);
+    waitToContinue();
 }
 
 
@@ -467,29 +481,9 @@ int main() {
         {"Exit", exitProgram}
     };
 
-    std::string choice;
+
     while (true) {
-        clearScreen();
-        std::cout << "\n-------- Main Menu --------\n";
-        for (size_t i = 0; i < menu.size(); ++i) {
-            std::cout << i + 1 << ". " << menu[i].first << "\n";
-        }
-        std::cout << "Enter your choice: ";
-        std::cin >> choice;
-
-        try {
-            int index = std::stoi(choice) - 1;
-            if (index >= 0 && index < static_cast<int>(menu.size())) {
-                clearScreen();
-                menu[index].second();
-            } else {
-                std::cout << "Invalid choice. Please try again.\n";
-            }
-        } catch (const std::exception &) {
-            std::cout << "Invalid input. Please enter a number.\n";
-        }
-
-        waitToContinue();
+        displayMenu(menu);
     }
 
     return 0;
