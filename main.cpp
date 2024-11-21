@@ -6,6 +6,7 @@
 #include <vector>
 #include <stdexcept>
 #include <iomanip>
+#include <limits>
 #include <sstream>
 
 const std::string& CURRENCY = "IDR";
@@ -148,9 +149,9 @@ void clearScreen() {
 }
 
 void waitToContinue() {
-    std::cin.get(); // Pause until Enter is pressed
     std::cout << std::endl;
-    std::cout << "Press any key to continue...";
+    std::cout << "Press Enter to continue...";
+    std::cin.ignore(std::numeric_limits<std::streamsize>::max(), '\n');
     std::cin.get(); // Pause until Enter is pressed
     std::cout << std::endl;
 }
@@ -454,42 +455,41 @@ void help() {
 
 
 int main() {
-    std::unordered_map<std::string, std::function<void()>> menu = {
-        {"1", viewSummary},
-        {"2", addTransaction},
-        {"3", editTransaction},
-        {"4", deleteTransaction},
-        {"5", reports},
-        {"6", settings},
-        {"7", advancedFeatures},
-        {"8", help},
-        {"9", exitProgram}
+    std::vector<std::pair<std::string, std::function<void()> > > menu = {
+        {"View Summary", viewSummary},
+        {"Add Transaction", addTransaction},
+        {"Edit Transaction", editTransaction},
+        {"Delete Transaction", deleteTransaction},
+        {"Reports", reports},
+        {"Settings", settings},
+        {"Advanced Features", advancedFeatures},
+        {"Help", help},
+        {"Exit", exitProgram}
     };
 
     std::string choice;
     while (true) {
         clearScreen();
         std::cout << "\n-------- Main Menu --------\n";
-        std::cout << "1. View Summary\n";
-        std::cout << "2. Add Transaction\n";
-        std::cout << "3. Edit Transaction\n";
-        std::cout << "4. Delete Transaction\n";
-        std::cout << "5. Reports\n";
-        std::cout << "6. Settings\n";
-        std::cout << "7. Advanced Features\n";
-        std::cout << "8. Help\n";
-        std::cout << "9. Exit\n";
+        for (size_t i = 0; i < menu.size(); ++i) {
+            std::cout << i + 1 << ". " << menu[i].first << "\n";
+        }
         std::cout << "Enter your choice: ";
         std::cin >> choice;
 
-        auto it = menu.find(choice);
-        if (it != menu.end()) {
-            clearScreen();
-            it->second();
-            waitToContinue();
-        } else {
-            std::cout << "Invalid choice. Please try again.\n";
+        try {
+            int index = std::stoi(choice) - 1;
+            if (index >= 0 && index < static_cast<int>(menu.size())) {
+                clearScreen();
+                menu[index].second();
+            } else {
+                std::cout << "Invalid choice. Please try again.\n";
+            }
+        } catch (const std::exception &) {
+            std::cout << "Invalid input. Please enter a number.\n";
         }
+
+        waitToContinue();
     }
 
     return 0;
