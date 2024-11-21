@@ -138,6 +138,22 @@ struct GlobalState {
 };
 
 GlobalState globalState;
+void clearScreen() {
+    // Use "clear" for UNIX/Linux/MacOS, "CLS" for Windows
+#ifdef _WIN32
+    system("CLS");
+#else
+    system("clear");
+#endif
+}
+
+void enterToContinue() {
+    std::cin.get(); // Pause until Enter is pressed
+    std::cout << std::endl;
+    std::cout << "Press Enter to continue...";
+    std::cin.get(); // Pause until Enter is pressed
+    std::cout << std::endl;
+}
 
 void viewSummary() {
     double totalAssets = 0.0;
@@ -436,6 +452,7 @@ void help() {
     }
 }
 
+
 int main() {
     std::unordered_map<std::string, std::function<void()>> menu = {
         {"1", viewSummary},
@@ -451,6 +468,8 @@ int main() {
 
     std::string choice;
     while (true) {
+
+        clearScreen();
         std::cout << "\n-------- Main Menu --------\n";
         std::cout << "1. View Summary\n";
         std::cout << "2. Add Transaction\n";
@@ -466,7 +485,10 @@ int main() {
 
         auto it = menu.find(choice);
         if (it != menu.end()) {
+
+            clearScreen();
             it->second();
+            enterToContinue();
         } else {
             std::cout << "Invalid choice. Please try again.\n";
         }
