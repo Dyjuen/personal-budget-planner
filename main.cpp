@@ -147,10 +147,10 @@ void clearScreen() {
 #endif
 }
 
-void enterToContinue() {
+void waitToContinue() {
     std::cin.get(); // Pause until Enter is pressed
     std::cout << std::endl;
-    std::cout << "Press Enter to continue...";
+    std::cout << "Press any key to continue...";
     std::cin.get(); // Pause until Enter is pressed
     std::cout << std::endl;
 }
@@ -468,7 +468,6 @@ int main() {
 
     std::string choice;
     while (true) {
-
         clearScreen();
         std::cout << "\n-------- Main Menu --------\n";
         std::cout << "1. View Summary\n";
@@ -485,10 +484,9 @@ int main() {
 
         auto it = menu.find(choice);
         if (it != menu.end()) {
-
             clearScreen();
             it->second();
-            enterToContinue();
+            waitToContinue();
         } else {
             std::cout << "Invalid choice. Please try again.\n";
         }
