@@ -179,9 +179,9 @@ void displayMenu(const std::vector<std::pair<std::string, std::function<void()> 
         } catch (const std::exception &) {
             std::cout << "Invalid input. Please enter a number.\n";
         }
-
         waitToContinue();
     }
+    waitToContinue();
 }
 
 
