@@ -257,7 +257,7 @@ void addTransaction() {
     std::cin >> name;
     std::cout << "Enter amount: ";
     std::cin >> amount;
-    if (date == '-'){
+    if (date == "-"){
     	date = getCurrentDate();
 	}
 
