@@ -109,6 +109,9 @@ public:
     }
 };
 
+void viewDetailedSummary(){
+	
+}
 void serializeAllItems(const std::vector<FinancialItem>& items, const std::string& filename) {
     std::ofstream out(filename);
     for (const auto& item : items) {
@@ -389,7 +392,7 @@ int main() {
     std::atexit(saveProgram);
 
     std::vector<std::pair<std::string, std::function<void()> > > menu = {
-        {"View Summary", viewSummary},
+        {"View Detailed Summary", viewDetailedSummary},
         {"Add Transaction", addTransaction},
         {"Edit Transaction", editTransaction},
         {"Delete Transaction", deleteTransaction},
