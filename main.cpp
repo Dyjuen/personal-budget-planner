@@ -8,6 +8,7 @@
 #include <iomanip>
 #include <limits>
 #include <sstream>
+#include <algorithm>
 
 const std::string& CURRENCY = "IDR";
 std::string formatIDR(double amount) {
@@ -75,6 +76,10 @@ public:
     void serialize(std::ofstream& out) const {
         out << getTypeName() << "," << name << "," << amount << "\n";
     }
+    
+    std::string getName() const {
+    	return name;
+	}
 
     [[nodiscard]] ItemType getType() const {
         return type;
@@ -239,7 +244,7 @@ void editTransaction() {
     std::cin >> name;
 
     for (auto& item : globalState.items) {
-        if (item.getTypeName() == name) {
+        if (item.getName() == name) {
             double newAmount;
             std::cout << "Enter new amount: ";
             std::cin >> newAmount;
@@ -258,7 +263,7 @@ void deleteTransaction() {
     std::cin >> name;
 
     auto it = std::remove_if(globalState.items.begin(), globalState.items.end(),
-                             [&name](const FinancialItem& item) { return item.getTypeName() == name; });
+                             [&name](const FinancialItem& item) { return item.getName() == name; });
     if (it != globalState.items.end()) {
         globalState.items.erase(it, globalState.items.end());
         globalState.save();
