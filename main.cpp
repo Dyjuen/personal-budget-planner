@@ -9,6 +9,9 @@
 #include <limits>
 #include <sstream>
 #include <algorithm>
+#include <chrono>
+#include <ctime>
+
 
 const std::string& CURRENCY = "IDR";
 std::string formatIDR(double amount) {
@@ -50,13 +53,15 @@ enum class ItemType {
 
 class FinancialItem {
 private:
+	std::string category;
     ItemType type;
     std::string name;
     double amount;
+    std::string date;
 
 public:
-    FinancialItem(ItemType type, const std::string& name, double amount)
-        : type(type), name(name), amount(amount) {}
+    FinancialItem(ItemType type, const std::string& name, const std::string& category, double amount, const std::string& date)
+        : type(type), name(name), category(category), amount(amount), date(date) {}
 
     void display() const {
         std::string typeName = getTypeName();
@@ -74,7 +79,7 @@ public:
     }
 
     void serialize(std::ofstream& out) const {
-        out << getTypeName() << "," << name << "," << amount << "\n";
+        out << getTypeName() << "," << name << "," << category << "," << amount << "," << date << "\n";
     }
     
     std::string getName() const {
@@ -90,12 +95,14 @@ public:
     }
 
     static FinancialItem deserialize(std::istream& in) {
-        std::string typeName, name;
-        double amount;
+        std::string typeName, name, category, date, amount;
+
 
         std::getline(in, typeName, ',');
         std::getline(in, name, ',');
-        in >> amount;
+        std::getline(in, category, ',');
+        std::getline(in, amount, ',');
+        in >> date;
         in.ignore(); // Ignore newline
 
         ItemType type;
@@ -105,7 +112,7 @@ public:
         else if (typeName == "Expense") type = ItemType::Expense;
         else throw std::invalid_argument("Invalid item type");
 
-        return FinancialItem(type, name, amount);
+        return FinancialItem(type, name, category, std::stod (amount), date);
     }
 };
 
@@ -155,6 +162,18 @@ void clearScreen() {
 #else
     system("clear");
 #endif
+}
+
+std::string getCurrentDate() {
+    // Get the current time
+    std::time_t t = std::time(nullptr);
+    std::tm tm = *std::localtime(&t);
+
+    // Create a string stream for formatting
+    std::ostringstream oss;
+    oss << std::put_time(&tm, "%Y--%m--%d"); // Use double dashes
+
+    return oss.str();
 }
 
 void waitToContinue() {
@@ -226,18 +245,24 @@ void viewSummary() {
 
 void addTransaction() {
     std::cout << "Adding transaction...\n";
-    std::string name;
+    std::string name, category, date;
     double amount;
     int typeInt;
+    std::cout << "If you don't want to change the date use \"-\" ";
     std::cout << "Enter type (0: Asset, 1: Liability, 2: Income, 3: Expense): ";
     std::cin >> typeInt;
+    std::cout << "Enter category: ";
+    std::cin >> category;
     std::cout << "Enter name: ";
     std::cin >> name;
     std::cout << "Enter amount: ";
     std::cin >> amount;
+    if (date == '-'){
+    	date = getCurrentDate();
+	}
 
     ItemType type = static_cast<ItemType>(typeInt);
-    globalState.items.emplace_back(type, name, amount);
+    globalState.items.emplace_back(type, name, category, amount, date);
     globalState.save();
 }
 
@@ -246,13 +271,20 @@ void editTransaction() {
     std::string name;
     std::cout << "Enter the name of the transaction to edit: ";
     std::cin >> name;
+    
 
     for (auto& item : globalState.items) {
         if (item.getName() == name) {
             double newAmount;
+            std::string newCategory, newDate;
+            std::cout << "If you don't want to change the date use \"-\" ";
+            std::cout << "Enter new category: ";
+            std::cin >> newCategory;
             std::cout << "Enter new amount: ";
             std::cin >> newAmount;
-            item = FinancialItem(item.getType(), name, newAmount);
+            std::cout << "Enter new date: ";
+            std::cin >> newDate;
+            item = FinancialItem(item.getType(), name, newCategory, newAmount, newDate);
             globalState.save();
             return;
         }
