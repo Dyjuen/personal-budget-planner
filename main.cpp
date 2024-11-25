@@ -135,8 +135,9 @@ struct GlobalState {
     }
 
     void load() {
-        try {
-            deserializeAllItems(items, "financial_items.csv");
+		try {
+            items.clear();
+			deserializeAllItems(items, "financial_items.csv");
         } catch (const std::exception& e) {
             std::cerr << "Error loading items: " << e.what() << std::endl;
         }
