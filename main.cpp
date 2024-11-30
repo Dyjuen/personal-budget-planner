@@ -13,6 +13,24 @@
 #include <chrono>
 #include <ctime>
 
+// Define a type for key-value pairs
+using KeyValuePair = std::pair<std::string, std::string>;
+
+// Function to print key-value pairs with automatic padding
+void printWithPadding(const std::vector<KeyValuePair>& items) {
+    // Find the maximum key length
+    size_t maxKeyLength = 0;
+    for (const auto& item : items) {
+        maxKeyLength = std::max(maxKeyLength, item.first.length());
+    }
+
+    // Print each key-value pair with appropriate padding
+    for (const auto& item : items) {
+        std::cout << std::left << std::setw(maxKeyLength + 2) << item.first
+                  << item.second << std::endl;
+    }
+}
+
 std::string getCurrentDate() {
     // Get the current time
     std::time_t t = std::time(nullptr);
@@ -31,7 +49,8 @@ std::pair<int, int> parseYearMonth(const std::string &dateStr) {
     return {year, month};
 }
 
-const std::string& CURRENCY = "IDR";
+const std::string &CURRENCY = "IDR";
+
 std::string formatIDR(double amount) {
     std::ostringstream oss;
     oss << std::fixed << std::setprecision(0) << amount;
@@ -46,6 +65,7 @@ std::string formatIDR(double amount) {
 
     return "IDR " + numStr;
 }
+
 std::string formatCurrency(double amount) {
     std::ostringstream oss;
 
@@ -71,7 +91,7 @@ enum class ItemType {
 
 class FinancialItem {
 private:
-	std::string category;
+    std::string category;
     ItemType type;
     std::string name;
     double amount;
@@ -106,8 +126,8 @@ public:
     }
 
     [[nodiscard]] std::string getName() const {
-    	return name;
-	}
+        return name;
+    }
 
     [[nodiscard]] ItemType getType() const {
         return type;
@@ -151,16 +171,16 @@ public:
 
 const std::string &HEADER = "Type,Name,Category,Amount,Date,Probability";
 
-void serializeAllItems(const std::vector<FinancialItem>& items, const std::string& filename) {
+void serializeAllItems(const std::vector<FinancialItem> &items, const std::string &filename) {
     std::ofstream out(filename);
     // print header
     out << HEADER << "\n";
-    for (const auto& item : items) {
+    for (const auto &item: items) {
         item.serialize(out);
     }
 }
 
-void deserializeAllItems(std::vector<FinancialItem>& items, const std::string& filename) {
+void deserializeAllItems(std::vector<FinancialItem> &items, const std::string &filename) {
     std::ifstream in(filename);
     while (in.peek() != EOF) {
         // Skip the header if matches
@@ -203,16 +223,17 @@ struct GlobalState {
     }
 
     void load() {
-		try {
+        try {
             items.clear();
-			deserializeAllItems(items, "financial_items.csv");
-        } catch (const std::exception& e) {
+            deserializeAllItems(items, "financial_items.csv");
+        } catch (const std::exception &e) {
             std::cerr << "Error loading items: " << e.what() << std::endl;
         }
     }
 };
 
 GlobalState globalState;
+
 void clearScreen() {
     // Use "clear" for UNIX/Linux/MacOS, "CLS" for Windows
 #ifdef _WIN32
@@ -246,6 +267,7 @@ void waitToContinue() {
     std::cin.get(); // Pause until Enter is pressed
     std::cout << std::endl;
 }
+
 template<typename T>
 void getInput(const std::string &fieldName, T *variable, const T &defaultValue) {
     std::cout << "Enter " << fieldName << " [" << defaultValue << "]: ";
@@ -258,6 +280,7 @@ void getInput(const std::string &fieldName, T *variable, const T &defaultValue) 
         std::istringstream(input) >> *variable;
     }
 }
+
 void displayMenu(const std::vector<std::pair<std::string, std::function<void()> > > &menu) {
     std::string choice;
     while (true) {
@@ -287,6 +310,48 @@ void displayMenu(const std::vector<std::pair<std::string, std::function<void()> 
 }
 
 void viewDetailedSummary() {
+    // Get top category for expense
+    std::unordered_map<std::string, double> categoryToAmount;
+    // Projected end of month assets
+    double totalAssets = 0.0;
+
+
+    for (const auto &item: globalState.getItemsThisMonth()) {
+        if (item.getType() == ItemType::Expense) {
+            categoryToAmount[item.getTypeName()] += item.getAmount();
+            totalAssets -= item.getAmount();
+        }
+
+        if (item.getType() == ItemType::Income) {
+            totalAssets += item.getAmount();
+        }
+
+        if (item.getType() == ItemType::Asset) {
+            totalAssets += item.getAmount();
+        }
+
+    }
+
+    // sort by amount
+    std::vector<std::pair<std::string, double> > sortedCategories(categoryToAmount.begin(), categoryToAmount.end());
+    std::sort(sortedCategories.begin(), sortedCategories.end(),
+              [](const std::pair<std::string, double> &a, const std::pair<std::string, double> &b) {
+                  return a.second > b.second;
+              });
+
+    // Print top 3 categories
+    std::vector<KeyValuePair> executiveSummary =  std::vector<KeyValuePair>();
+    std::ostringstream ossTop3ExpenseCategories;
+    for (size_t i = 0; i < std::min(sortedCategories.size(), static_cast<size_t>(3)); ++i) {
+        ossTop3ExpenseCategories << i + 1 << ". " << sortedCategories[i].first << ": " << formatCurrency(sortedCategories[i].second) << "\n";
+    }
+    executiveSummary.emplace_back("Top 3 Expense Categories", ": \n" + ossTop3ExpenseCategories.str());
+
+    // Print projected end of month assets
+    executiveSummary.emplace_back("Projected End of Month Assets", ": "+formatCurrency(totalAssets));
+
+    printWithPadding(executiveSummary);
+
 }
 
 void viewSummary() {
@@ -299,24 +364,28 @@ void viewSummary() {
         switch (item.getType()) {
             case ItemType::Asset:
                 totalAssets += item.getAmount();
-            break;
+                break;
             case ItemType::Liability:
                 totalLiabilities += item.getAmount();
-            break;
+                break;
             case ItemType::Income:
                 totalIncome += item.getAmount();
-            break;
+                break;
             case ItemType::Expense:
                 totalExpenses += item.getAmount();
-            break;
+                break;
         }
     }
 
-    std::cout << "Summary This Month:\n";
-    std::cout << "Total Assets: " << formatCurrency(totalAssets) << "\n";
-    std::cout << "Total Liabilities: " << formatCurrency(totalLiabilities) << "\n";
-    std::cout << "Total Income: " << formatCurrency(totalIncome) << "\n";
-    std::cout << "Total Expenses: " << formatCurrency(totalExpenses) << "\n";
+
+
+    printWithPadding({
+        {"Summary This Month", ""},
+        {"Total Assets", ": " + formatCurrency(totalAssets)},
+        {"Total Liabilities", ": " + formatCurrency(totalLiabilities)},
+        {"Total Income", ": " + formatCurrency(totalIncome)},
+        {"Total Expenses", ": " + formatCurrency(totalExpenses)}
+    });
 }
 
 
@@ -349,7 +418,7 @@ void editTransaction() {
     std::string name;
     getInput("the name of the transaction to edit", &name, std::string(""));
 
-    for (auto& item : globalState.items) {
+    for (auto &item: globalState.items) {
         if (item.getName() == name) {
             std::string newCategory = item.getTypeName();
             std::string newDate = item.getDate();
@@ -371,7 +440,7 @@ void deleteTransaction() {
     getInput("the name of the transaction to delete", &name, std::string(""));
 
     auto it = std::remove_if(globalState.items.begin(), globalState.items.end(),
-                             [&name](const FinancialItem& item) { return item.getName() == name; });
+                             [&name](const FinancialItem &item) { return item.getName() == name; });
     if (it != globalState.items.end()) {
         globalState.items.erase(it, globalState.items.end());
         globalState.save();
