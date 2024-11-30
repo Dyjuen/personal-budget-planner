@@ -183,6 +183,18 @@ void waitToContinue() {
     std::cin.get(); // Pause until Enter is pressed
     std::cout << std::endl;
 }
+template <typename T>
+void getInput(const std::string& prompt, T* variable, const T& defaultValue) {
+    std::cout << prompt;
+    std::string input;
+    std::getline(std::cin, input);
+
+    if (input == "-") {
+        *variable = defaultValue;
+    } else {
+        std::istringstream(input) >> *variable;
+    }
+}
 
 void displayMenu(const std::vector<std::pair<std::string, std::function<void()> > > &menu) {
     std::string choice;
@@ -191,8 +203,8 @@ void displayMenu(const std::vector<std::pair<std::string, std::function<void()> 
         for (size_t i = 0; i < menu.size(); ++i) {
             std::cout << i + 1 << ". " << menu[i].first << "\n";
         }
-        std::cout << "Enter your choice: ";
-        std::cin >> choice;
+
+        getInput("Enter your choice: ", &choice, std::string(""));
 
         try {
             int index = std::stoi(choice) - 1;
@@ -243,25 +255,25 @@ void viewSummary() {
     std::cout << "Total Expenses: " << formatCurrency(totalExpenses) << "\n";
 }
 
+
+void inputTransactionDetails(std::string& category, double& amount, std::string& date) {
+    getInput("Enter category (default: General): ", &category, std::string("General"));
+    getInput("Enter amount (default: 0.0): ", &amount, 0.0);
+    const std::string& currentDate = getCurrentDate();
+    getInput("Enter date (default: " + currentDate + "): ", &date, currentDate);
+}
+
 void addTransaction() {
     std::cout << "Adding transaction...\n";
     std::string name, category, date;
     double amount;
     int typeInt;
-    std::cout << "If you don't want to change the date use \"-\" ";
-    std::cout << "Enter type (0: Asset, 1: Liability, 2: Income, 3: Expense): ";
-    std::cin >> typeInt;
-    std::cout << "Enter category: ";
-    std::cin >> category;
-    std::cout << "Enter name: ";
-    std::cin >> name;
-    std::cout << "Enter amount: ";
-    std::cin >> amount;
-    if (date == "-"){
-    	date = getCurrentDate();
-	}
 
-    ItemType type = static_cast<ItemType>(typeInt);
+    getInput("Enter type (0: Asset, 1: Liability, 2: Income, 3: Expense): ", &typeInt, 0);
+    getInput("Enter name: ", &name, std::string("Unnamed"));
+    inputTransactionDetails(category, amount, date);
+
+    auto type = static_cast<ItemType>(typeInt);
     globalState.items.emplace_back(type, name, category, amount, date);
     globalState.save();
 }
@@ -269,21 +281,14 @@ void addTransaction() {
 void editTransaction() {
     std::cout << "Editing transaction...\n";
     std::string name;
-    std::cout << "Enter the name of the transaction to edit: ";
-    std::cin >> name;
-    
+    getInput("Enter the name of the transaction to edit: ", &name, std::string(""));
 
     for (auto& item : globalState.items) {
         if (item.getName() == name) {
-            double newAmount;
             std::string newCategory, newDate;
-            std::cout << "If you don't want to change the date use \"-\" ";
-            std::cout << "Enter new category: ";
-            std::cin >> newCategory;
-            std::cout << "Enter new amount: ";
-            std::cin >> newAmount;
-            std::cout << "Enter new date: ";
-            std::cin >> newDate;
+            double newAmount;
+            inputTransactionDetails(newCategory, newAmount, newDate);
+
             item = FinancialItem(item.getType(), name, newCategory, newAmount, newDate);
             globalState.save();
             return;
@@ -295,8 +300,7 @@ void editTransaction() {
 void deleteTransaction() {
     std::cout << "Deleting transaction...\n";
     std::string name;
-    std::cout << "Enter the name of the transaction to delete: ";
-    std::cin >> name;
+    getInput("Enter the name of the transaction to delete: ", &name, std::string(""));
 
     auto it = std::remove_if(globalState.items.begin(), globalState.items.end(),
                              [&name](const FinancialItem& item) { return item.getName() == name; });
@@ -309,95 +313,6 @@ void deleteTransaction() {
     }
 }
 
-void monthlyReport() {
-    std::cout << "Generating monthly report...\n";
-    // Implement report generation logic here
-}
-
-void annualReport() {
-    std::cout << "Generating annual report...\n";
-    // Implement report generation logic here
-}
-
-void incomeVsExpenses() {
-    std::cout << "Generating income vs expenses report...\n";
-    // Implement report generation logic here
-}
-
-void assetAndLiabilityBreakdown() {
-    std::cout << "Generating asset and liability breakdown...\n";
-    // Implement breakdown logic here
-}
-
-void manageCategories() {
-    std::cout << "Managing categories...\n";
-    // Implement category management here
-}
-
-void setBudgetLimits() {
-    std::cout << "Setting budget limits...\n";
-    // Implement budget limit setting here
-}
-
-void notificationPreferences() {
-    std::cout << "Setting notification preferences...\n";
-    // Implement notification preference setting here
-}
-
-void securitySettings() {
-    std::cout << "Adjusting security settings...\n";
-    // Implement security settings here
-}
-
-void userGuide() {
-    std::cout << "Displaying user guide...\n";
-    // Implement user guide display here
-}
-
-void tutorials() {
-    std::cout << "Displaying tutorials...\n";
-    // Implement tutorials display here
-}
-
-void contactSupport() {
-    std::cout << "Contacting support...\n";
-    // Implement support contact here
-}
-
-void syncWithBankAccounts() {
-    std::cout << "Syncing with bank accounts...\n";
-    // Implement bank account sync here
-}
-
-void setFinancialGoals() {
-    std::cout << "Setting financial goals...\n";
-    // Implement financial goals setting here
-}
-
-void spendingInsights() {
-    std::cout << "Generating spending insights...\n";
-    // Implement spending insights here
-}
-
-void predictiveAnalytics() {
-    std::cout << "Performing predictive analytics...\n";
-    // Implement predictive analytics here
-}
-
-void sharedBudgeting() {
-    std::cout << "Managing shared budgeting...\n";
-    // Implement shared budgeting here
-}
-
-void exportData() {
-    std::cout << "Exporting data...\n";
-    // Implement data export here
-}
-
-void importData() {
-    std::cout << "Importing data...\n";
-    // Implement data import here
-}
 
 // Save the program state to disk
 void saveProgram() {
