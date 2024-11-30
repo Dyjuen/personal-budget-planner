@@ -62,12 +62,15 @@ private:
     double probability;
 
 public:
-    FinancialItem(ItemType type, std::string& name, std::string& category, double amount, std::string& date, double probability)
-        : type(type), name(name), category(category), amount(amount), date(date), probability(probability) {}
+    FinancialItem(ItemType type, std::string &name, std::string &category, double amount, std::string &date,
+                  double probability)
+        : type(type), name(name), category(category), amount(amount), date(date), probability(probability) {
+    }
 
     void display() const {
         std::string typeName = getTypeName();
-        std::cout << "(" << date << ") " << name << " (" << category << "): " << formatCurrency(amount) << " (" << typeName << ") " << (probability * 100) << "%\n";
+        std::cout << "(" << date << ") " << name << " (" << category << "): " << formatCurrency(amount) << " (" <<
+                typeName << ") " << (probability * 100) << "%\n";
     }
 
     [[nodiscard]] std::string getTypeName() const {
@@ -80,10 +83,11 @@ public:
         return "";
     }
 
-    void serialize(std::ofstream& out) const {
-        out << getTypeName() << "," << name << "," << category << "," << amount << "," << date << "," << probability << "\n";
+    void serialize(std::ofstream &out) const {
+        out << getTypeName() << "," << name << "," << category << "," << amount << "," << date << "," << probability <<
+                "\n";
     }
-    
+
     [[nodiscard]] std::string getName() const {
     	return name;
 	}
@@ -104,7 +108,7 @@ public:
         return probability;
     }
 
-    static FinancialItem deserialize(std::istream& in) {
+    static FinancialItem deserialize(std::istream &in) {
         std::string typeName, name, category, date, amount, probability;
 
 
