@@ -188,8 +188,8 @@ void waitToContinue() {
     std::cout << std::endl;
 }
 template<typename T>
-void getInput(const std::string &prompt, T *variable, const T &defaultValue) {
-    std::cout << prompt;
+void getInput(const std::string &fieldName, T *variable, const T &defaultValue) {
+    std::cout << "Enter " << fieldName << " [" << defaultValue << "]: ";
     std::string input;
     std::getline(std::cin, input);
 
@@ -199,7 +199,6 @@ void getInput(const std::string &prompt, T *variable, const T &defaultValue) {
         std::istringstream(input) >> *variable;
     }
 }
-
 void displayMenu(const std::vector<std::pair<std::string, std::function<void()> > > &menu) {
     std::string choice;
     while (true) {
@@ -208,7 +207,7 @@ void displayMenu(const std::vector<std::pair<std::string, std::function<void()> 
             std::cout << i + 1 << ". " << menu[i].first << "\n";
         }
 
-        getInput("Enter your choice: ", &choice, std::string(""));
+        getInput("choice", &choice, std::string(""));
 
         try {
             int index = std::stoi(choice) - 1;
@@ -261,17 +260,12 @@ void viewSummary() {
 
 
 void inputTransactionDetails(std::string &category, double &amount, std::string &date) {
-    // Use the provided category if it's not empty, otherwise default to "General"
-    getInput("Enter category (default: General): ", &category, category.empty() ? std::string("General") : category);
+    getInput("category", &category, category.empty() ? std::string("General") : category);
+    getInput("amount", &amount, amount != 0.0 ? amount : 0.0);
 
-    // Use the provided amount if it's not zero, otherwise default to 0.0
-    getInput("Enter amount (default: 0.0): ", &amount, amount != 0.0 ? amount : 0.0);
-
-    // Use the provided date if it's not empty, otherwise default to the current date
     const std::string &currentDate = getCurrentDate();
-    getInput("Enter date (default: " + currentDate + "): ", &date, date.empty() ? currentDate : date);
+    getInput("date", &date, date.empty() ? currentDate : date);
 }
-
 
 void addTransaction() {
     std::cout << "Adding transaction...\n";
@@ -279,8 +273,8 @@ void addTransaction() {
     double amount;
     int typeInt;
 
-    getInput("Enter type (0: Asset, 1: Liability, 2: Income, 3: Expense): ", &typeInt, 0);
-    getInput("Enter name: ", &name, std::string("Unnamed"));
+    getInput("type (0: Asset, 1: Liability, 2: Income, 3: Expense)", &typeInt, 0);
+    getInput("name", &name, std::string("Unnamed"));
     inputTransactionDetails(category, amount, date);
 
     auto type = static_cast<ItemType>(typeInt);
@@ -291,7 +285,7 @@ void addTransaction() {
 void editTransaction() {
     std::cout << "Editing transaction...\n";
     std::string name;
-    getInput("Enter the name of the transaction to edit: ", &name, std::string(""));
+    getInput("the name of the transaction to edit", &name, std::string(""));
 
     for (auto& item : globalState.items) {
         if (item.getName() == name) {
@@ -311,7 +305,7 @@ void editTransaction() {
 void deleteTransaction() {
     std::cout << "Deleting transaction...\n";
     std::string name;
-    getInput("Enter the name of the transaction to delete: ", &name, std::string(""));
+    getInput("the name of the transaction to delete", &name, std::string(""));
 
     auto it = std::remove_if(globalState.items.begin(), globalState.items.end(),
                              [&name](const FinancialItem& item) { return item.getName() == name; });
