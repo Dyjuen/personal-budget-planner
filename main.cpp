@@ -108,7 +108,7 @@ public:
         return probability;
     }
 
-    static FinancialItem deserialize(const std::string& input) {
+    static FinancialItem deserialize(const std::string &input) {
         std::istringstream in(input);
         std::string typeName, name, category, date, amount, probability;
 
@@ -134,11 +134,12 @@ public:
 void viewDetailedSummary(){
 	
 }
-const std::string& HEADER = "Type,Name,Category,Amount,Date,Probability";
+const std::string &HEADER = "Type,Name,Category,Amount,Date,Probability";
+
 void serializeAllItems(const std::vector<FinancialItem>& items, const std::string& filename) {
     std::ofstream out(filename);
     // print header
-    out <<  HEADER << "\n";
+    out << HEADER << "\n";
     for (const auto& item : items) {
         item.serialize(out);
     }
