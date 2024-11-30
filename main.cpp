@@ -168,6 +168,22 @@ void clearScreen() {
 #endif
 }
 
+// Save the program state to disk
+void saveProgram() {
+    globalState.save();
+}
+
+// Load the program state from disk
+void loadProgram() {
+    globalState.load();
+}
+
+void exitProgram() {
+    std::cout << "Exiting program...\n";
+    saveProgram();
+    exit(0);
+}
+
 std::string getCurrentDate() {
     // Get the current time
     std::time_t t = std::time(nullptr);
@@ -317,26 +333,6 @@ void deleteTransaction() {
         std::cout << "Transaction not found.\n";
     }
 }
-
-
-// Save the program state to disk
-void saveProgram() {
-    globalState.save();
-}
-
-// Load the program state from disk
-void loadProgram() {
-    globalState.load();
-}
-
-void exitProgram() {
-    std::cout << "Exiting program...\n";
-    saveProgram();
-    exit(0);
-}
-
-
-
 
 
 int main() {
