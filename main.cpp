@@ -94,6 +94,10 @@ public:
         return amount;
     }
 
+    [[nodiscard]] std::string getDate() const {
+        return date;
+    }
+
     static FinancialItem deserialize(std::istream& in) {
         std::string typeName, name, category, date, amount;
 
@@ -291,8 +295,9 @@ void editTransaction() {
 
     for (auto& item : globalState.items) {
         if (item.getName() == name) {
-            std::string newCategory, newDate;
-            double newAmount;
+            std::string newCategory = item.getTypeName();
+            std::string newDate = item.getDate();
+            double newAmount = item.getAmount();
             inputTransactionDetails(newCategory, newAmount, newDate);
 
             item = FinancialItem(item.getType(), name, newCategory, newAmount, newDate);
