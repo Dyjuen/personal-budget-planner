@@ -1,3 +1,4 @@
+// ReSharper disable CppParameterMayBeConstPtrOrRef
 #include <iostream>
 #include <unordered_map>
 #include <functional>
@@ -58,14 +59,15 @@ private:
     std::string name;
     double amount;
     std::string date;
+    double probability;
 
 public:
-    FinancialItem(ItemType type, const std::string& name, const std::string& category, double amount, const std::string& date)
-        : type(type), name(name), category(category), amount(amount), date(date) {}
+    FinancialItem(ItemType type, std::string& name, std::string& category, double amount, std::string& date, double probability)
+        : type(type), name(name), category(category), amount(amount), date(date), probability(probability) {}
 
     void display() const {
         std::string typeName = getTypeName();
-        std::cout << typeName << " - " << name << ": " << amount << std::endl;
+        std::cout << "(" << date << ") " << name << " (" << category << "): " << formatCurrency(amount) << " (" << typeName << ") " << (probability * 100) << "%\n";
     }
 
     [[nodiscard]] std::string getTypeName() const {
@@ -79,10 +81,10 @@ public:
     }
 
     void serialize(std::ofstream& out) const {
-        out << getTypeName() << "," << name << "," << category << "," << amount << "," << date << "\n";
+        out << getTypeName() << "," << name << "," << category << "," << amount << "," << date << "," << probability << "\n";
     }
     
-    std::string getName() const {
+    [[nodiscard]] std::string getName() const {
     	return name;
 	}
 
@@ -98,15 +100,20 @@ public:
         return date;
     }
 
+    [[nodiscard]] double getProbability() const {
+        return probability;
+    }
+
     static FinancialItem deserialize(std::istream& in) {
-        std::string typeName, name, category, date, amount;
+        std::string typeName, name, category, date, amount, probability;
 
 
         std::getline(in, typeName, ',');
         std::getline(in, name, ',');
         std::getline(in, category, ',');
         std::getline(in, amount, ',');
-        in >> date;
+        std::getline(in, date, ',');
+        in >> probability;
         in.ignore(); // Ignore newline
 
         ItemType type;
@@ -116,7 +123,7 @@ public:
         else if (typeName == "Expense") type = ItemType::Expense;
         else throw std::invalid_argument("Invalid item type");
 
-        return FinancialItem(type, name, category, std::stod (amount), date);
+        return FinancialItem(type, name, category, std::stod(amount), date, std::stod(probability));
     }
 };
 
@@ -191,7 +198,7 @@ std::string getCurrentDate() {
 
     // Create a string stream for formatting
     std::ostringstream oss;
-    oss << std::put_time(&tm, "%Y--%m--%d"); // Use double dashes
+    oss << std::put_time(&tm, "%Y-%m-%d"); // Use double dashes
 
     return oss.str();
 }
@@ -275,26 +282,27 @@ void viewSummary() {
 }
 
 
-void inputTransactionDetails(std::string &category, double &amount, std::string &date) {
+void inputTransactionDetails(std::string &category, double &amount, std::string &date, double &probability) {
     getInput("category", &category, category.empty() ? std::string("General") : category);
     getInput("amount", &amount, amount != 0.0 ? amount : 0.0);
 
     const std::string &currentDate = getCurrentDate();
     getInput("date", &date, date.empty() ? currentDate : date);
+    getInput("probability", &probability, probability != 0.0 ? probability : 1.0);
 }
 
 void addTransaction() {
     std::cout << "Adding transaction...\n";
     std::string name, category, date;
-    double amount;
+    double amount = 0, probability = 1.0;
     int typeInt;
 
     getInput("type (0: Asset, 1: Liability, 2: Income, 3: Expense)", &typeInt, 0);
     getInput("name", &name, std::string("Unnamed"));
-    inputTransactionDetails(category, amount, date);
+    inputTransactionDetails(category, amount, date, probability);
 
     auto type = static_cast<ItemType>(typeInt);
-    globalState.items.emplace_back(type, name, category, amount, date);
+    globalState.items.emplace_back(type, name, category, amount, date, probability);
     globalState.save();
 }
 
@@ -308,9 +316,10 @@ void editTransaction() {
             std::string newCategory = item.getTypeName();
             std::string newDate = item.getDate();
             double newAmount = item.getAmount();
-            inputTransactionDetails(newCategory, newAmount, newDate);
+            double newProbability = item.getProbability();
+            inputTransactionDetails(newCategory, newAmount, newDate, newProbability);
 
-            item = FinancialItem(item.getType(), name, newCategory, newAmount, newDate);
+            item = FinancialItem(item.getType(), name, newCategory, newAmount, newDate, newProbability);
             globalState.save();
             return;
         }
