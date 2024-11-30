@@ -25,7 +25,7 @@ std::string getCurrentDate() {
     return oss.str();
 }
 
-std::pair<int, int> parseYearMonth(const std::string& dateStr) {
+std::pair<int, int> parseYearMonth(const std::string &dateStr) {
     int year = std::stoi(dateStr.substr(0, 4));
     int month = std::stoi(dateStr.substr(5, 2));
     return {year, month};
@@ -189,7 +189,7 @@ struct GlobalState {
         // Get current date
         auto [currentYear, currentMonth] = parseYearMonth(getCurrentDate());
 
-        for (const auto& item : items) {
+        for (const auto &item: items) {
             auto [year, month] = parseYearMonth(item.getDate());
             if (year == currentYear && month == currentMonth) {
                 itemsThisMonth.push_back(item);
@@ -286,16 +286,16 @@ void displayMenu(const std::vector<std::pair<std::string, std::function<void()> 
     waitToContinue();
 }
 
-void viewDetailedSummary(){
-
+void viewDetailedSummary() {
 }
+
 void viewSummary() {
     double totalAssets = 0.0;
     double totalLiabilities = 0.0;
     double totalIncome = 0.0;
     double totalExpenses = 0.0;
 
-    for (const auto& item : globalState.getItemsThisMonth()) {
+    for (const auto &item: globalState.getItemsThisMonth()) {
         switch (item.getType()) {
             case ItemType::Asset:
                 totalAssets += item.getAmount();
