@@ -108,7 +108,8 @@ public:
         return probability;
     }
 
-    static FinancialItem deserialize(std::istream &in) {
+    static FinancialItem deserialize(const std::string& input) {
+        std::istringstream in(input);
         std::string typeName, name, category, date, amount, probability;
 
 
@@ -117,8 +118,7 @@ public:
         std::getline(in, category, ',');
         std::getline(in, amount, ',');
         std::getline(in, date, ',');
-        in >> probability;
-        in.ignore(); // Ignore newline
+        std::getline(in, probability);
 
         ItemType type;
         if (typeName == "Asset") type = ItemType::Asset;
@@ -134,8 +134,11 @@ public:
 void viewDetailedSummary(){
 	
 }
+const std::string& HEADER = "Type,Name,Category,Amount,Date,Probability";
 void serializeAllItems(const std::vector<FinancialItem>& items, const std::string& filename) {
     std::ofstream out(filename);
+    // print header
+    out <<  HEADER << "\n";
     for (const auto& item : items) {
         item.serialize(out);
     }
@@ -144,7 +147,12 @@ void serializeAllItems(const std::vector<FinancialItem>& items, const std::strin
 void deserializeAllItems(std::vector<FinancialItem>& items, const std::string& filename) {
     std::ifstream in(filename);
     while (in.peek() != EOF) {
-        items.push_back(FinancialItem::deserialize(in));
+        // Skip the header if matches
+        std::string line = "";
+        std::getline(in, line);
+        if (line == HEADER) continue;
+
+        items.push_back(FinancialItem::deserialize(line));
     }
 }
 
