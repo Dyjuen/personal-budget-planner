@@ -13,6 +13,23 @@
 #include <chrono>
 #include <ctime>
 
+std::string getCurrentDate() {
+    // Get the current time
+    std::time_t t = std::time(nullptr);
+    std::tm tm = *std::localtime(&t);
+
+    // Create a string stream for formatting
+    std::ostringstream oss;
+    oss << std::put_time(&tm, "%Y-%m-%d"); // Use double dashes
+
+    return oss.str();
+}
+
+std::pair<int, int> parseYearMonth(const std::string& dateStr) {
+    int year = std::stoi(dateStr.substr(0, 4));
+    int month = std::stoi(dateStr.substr(5, 2));
+    return {year, month};
+}
 
 const std::string& CURRENCY = "IDR";
 std::string formatIDR(double amount) {
@@ -131,9 +148,7 @@ public:
     }
 };
 
-void viewDetailedSummary(){
-	
-}
+
 const std::string &HEADER = "Type,Name,Category,Amount,Date,Probability";
 
 void serializeAllItems(const std::vector<FinancialItem>& items, const std::string& filename) {
@@ -162,6 +177,25 @@ struct GlobalState {
 
     GlobalState() {
         load();
+    }
+
+
+    [[nodiscard]] std::vector<FinancialItem> getItems() const {
+        return items;
+    }
+
+    [[nodiscard]] std::vector<FinancialItem> getItemsThisMonth() const {
+        std::vector<FinancialItem> itemsThisMonth;
+        // Get current date
+        auto [currentYear, currentMonth] = parseYearMonth(getCurrentDate());
+
+        for (const auto& item : items) {
+            auto [year, month] = parseYearMonth(item.getDate());
+            if (year == currentYear && month == currentMonth) {
+                itemsThisMonth.push_back(item);
+            }
+        }
+        return itemsThisMonth;
     }
 
     void save() const {
@@ -204,17 +238,6 @@ void exitProgram() {
     exit(0);
 }
 
-std::string getCurrentDate() {
-    // Get the current time
-    std::time_t t = std::time(nullptr);
-    std::tm tm = *std::localtime(&t);
-
-    // Create a string stream for formatting
-    std::ostringstream oss;
-    oss << std::put_time(&tm, "%Y-%m-%d"); // Use double dashes
-
-    return oss.str();
-}
 
 void waitToContinue() {
     std::cout << std::endl;
@@ -263,14 +286,16 @@ void displayMenu(const std::vector<std::pair<std::string, std::function<void()> 
     waitToContinue();
 }
 
+void viewDetailedSummary(){
 
+}
 void viewSummary() {
     double totalAssets = 0.0;
     double totalLiabilities = 0.0;
     double totalIncome = 0.0;
     double totalExpenses = 0.0;
 
-    for (const auto& item : globalState.items) {
+    for (const auto& item : globalState.getItemsThisMonth()) {
         switch (item.getType()) {
             case ItemType::Asset:
                 totalAssets += item.getAmount();
@@ -287,7 +312,7 @@ void viewSummary() {
         }
     }
 
-    std::cout << "Summary:\n";
+    std::cout << "Summary This Month:\n";
     std::cout << "Total Assets: " << formatCurrency(totalAssets) << "\n";
     std::cout << "Total Liabilities: " << formatCurrency(totalLiabilities) << "\n";
     std::cout << "Total Income: " << formatCurrency(totalIncome) << "\n";
