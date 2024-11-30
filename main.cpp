@@ -183,13 +183,13 @@ void waitToContinue() {
     std::cin.get(); // Pause until Enter is pressed
     std::cout << std::endl;
 }
-template <typename T>
-void getInput(const std::string& prompt, T* variable, const T& defaultValue) {
+template<typename T>
+void getInput(const std::string &prompt, T *variable, const T &defaultValue) {
     std::cout << prompt;
     std::string input;
     std::getline(std::cin, input);
 
-    if (input == "-") {
+    if (input.empty()) {
         *variable = defaultValue;
     } else {
         std::istringstream(input) >> *variable;
@@ -256,12 +256,18 @@ void viewSummary() {
 }
 
 
-void inputTransactionDetails(std::string& category, double& amount, std::string& date) {
-    getInput("Enter category (default: General): ", &category, std::string("General"));
-    getInput("Enter amount (default: 0.0): ", &amount, 0.0);
-    const std::string& currentDate = getCurrentDate();
-    getInput("Enter date (default: " + currentDate + "): ", &date, currentDate);
+void inputTransactionDetails(std::string &category, double &amount, std::string &date) {
+    // Use the provided category if it's not empty, otherwise default to "General"
+    getInput("Enter category (default: General): ", &category, category.empty() ? std::string("General") : category);
+
+    // Use the provided amount if it's not zero, otherwise default to 0.0
+    getInput("Enter amount (default: 0.0): ", &amount, amount != 0.0 ? amount : 0.0);
+
+    // Use the provided date if it's not empty, otherwise default to the current date
+    const std::string &currentDate = getCurrentDate();
+    getInput("Enter date (default: " + currentDate + "): ", &date, date.empty() ? currentDate : date);
 }
+
 
 void addTransaction() {
     std::cout << "Adding transaction...\n";
