@@ -17,17 +17,17 @@
 using KeyValuePair = std::pair<std::string, std::string>;
 
 // Function to print key-value pairs with automatic padding
-void printWithPadding(const std::vector<KeyValuePair>& items) {
+void printWithPadding(const std::vector<KeyValuePair> &items) {
     // Find the maximum key length
     size_t maxKeyLength = 0;
-    for (const auto& item : items) {
+    for (const auto &item: items) {
         maxKeyLength = std::max(maxKeyLength, item.first.length());
     }
 
     // Print each key-value pair with appropriate padding
-    for (const auto& item : items) {
+    for (const auto &item: items) {
         std::cout << std::left << std::setw(maxKeyLength + 2) << item.first
-                  << item.second << std::endl;
+                << item.second << std::endl;
     }
 }
 
@@ -329,7 +329,6 @@ void viewDetailedSummary() {
         if (item.getType() == ItemType::Asset) {
             totalAssets += item.getAmount();
         }
-
     }
 
     // sort by amount
@@ -340,18 +339,18 @@ void viewDetailedSummary() {
               });
 
     // Print top 3 categories
-    std::vector<KeyValuePair> executiveSummary =  std::vector<KeyValuePair>();
+    std::vector<KeyValuePair> executiveSummary = std::vector<KeyValuePair>();
     std::ostringstream ossTop3ExpenseCategories;
     for (size_t i = 0; i < std::min(sortedCategories.size(), static_cast<size_t>(3)); ++i) {
-        ossTop3ExpenseCategories << i + 1 << ". " << sortedCategories[i].first << ": " << formatCurrency(sortedCategories[i].second) << "\n";
+        ossTop3ExpenseCategories << i + 1 << ". " << sortedCategories[i].first << ": " << formatCurrency(
+            sortedCategories[i].second) << "\n";
     }
     executiveSummary.emplace_back("Top 3 Expense Categories", ": \n" + ossTop3ExpenseCategories.str());
 
     // Print projected end of month assets
-    executiveSummary.emplace_back("Projected End of Month Assets", ": "+formatCurrency(totalAssets));
+    executiveSummary.emplace_back("Projected End of Month Assets", ": " + formatCurrency(totalAssets));
 
     printWithPadding(executiveSummary);
-
 }
 
 void viewSummary() {
@@ -376,7 +375,6 @@ void viewSummary() {
                 break;
         }
     }
-
 
 
     printWithPadding({
