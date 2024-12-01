@@ -455,6 +455,7 @@ std::vector<KeyValuePair> evaluateScenarios(const std::vector<FinancialItem> &it
     std::vector<KeyValuePair> executiveSummary = std::vector<KeyValuePair>();
     executiveSummary.emplace_back("", "");
     executiveSummary.emplace_back("Scenarios Evaluation of All Budget Items", "");
+    executiveSummary.emplace_back("Projected Total Assets by The End", "");
     executiveSummary.emplace_back("Best Case Scenario", ": " + formatCurrency(maxAssets));
     executiveSummary.emplace_back("Worst Case Scenario", ": " + formatCurrency(minAssets));
     executiveSummary.emplace_back("Most Likely Outcome",
