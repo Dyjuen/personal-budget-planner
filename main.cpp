@@ -13,6 +13,7 @@
 #include <chrono>
 #include <ctime>
 
+#pragma region Utility
 // Define a type for key-value pairs
 using KeyValuePair = std::pair<std::string, std::string>;
 
@@ -81,7 +82,8 @@ std::string formatCurrency(double amount) {
 
     return oss.str();
 }
-
+#pragma endregion Utility
+#pragma region Model
 enum class ItemType {
     Asset,
     Liability,
@@ -240,6 +242,8 @@ struct GlobalState {
 };
 
 GlobalState globalState;
+#pragma endregion Model
+#pragma region CLIUtility
 
 void clearScreen() {
     // Use "clear" for UNIX/Linux/MacOS, "CLS" for Windows
@@ -315,6 +319,8 @@ void displayMenu(const std::vector<std::pair<std::string, std::function<void()> 
     }
     waitToContinue();
 }
+#pragma endregion CLIUtility
+#pragma region Application
 
 void viewDetailedSummary() {
     // Get top category for expense
@@ -477,3 +483,5 @@ int main() {
 
     return 0;
 }
+
+#pragma endregion Application
