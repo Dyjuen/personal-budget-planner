@@ -10,10 +10,30 @@
 #include <limits>
 #include <sstream>
 #include <algorithm>
-#include <chrono>
 #include <ctime>
+#include <cmath>
 
 #pragma region Utility
+std::string formatToPercentage(double decimal) {
+    // Convert the decimal to a percentage
+    double percentage = decimal * 100;
+
+    // Limit the percentage to the range 0 - 100
+    if (percentage < 0) {
+        percentage = 0;
+    } else if (percentage > 100) {
+        percentage = 100;
+    }
+
+    int intPercentage = static_cast<int>(percentage);
+
+    // Create a string stream to format the percentage
+    std::ostringstream oss;
+    oss << std::fixed << std::setprecision(2) << intPercentage << "%";
+
+    return oss.str();
+}
+
 // Define a type for key-value pairs
 using KeyValuePair = std::pair<std::string, std::string>;
 
@@ -147,6 +167,10 @@ public:
         return probability;
     }
 
+    [[nodiscard]] std::string getCategory() const {
+        return category;
+    }
+
     static FinancialItem deserialize(const std::string &input) {
         std::istringstream in(input);
         std::string typeName, name, category, date, amount, probability;
@@ -224,6 +248,20 @@ struct GlobalState {
         }
         return itemsThisMonth;
     }
+    [[nodiscard]] std::vector<FinancialItem> getAllItemsBeforeEndOfMonth() const {
+        std::vector<FinancialItem> itemsBeforeEndOfMonth;
+        // Get current date
+        auto [currentYear, currentMonth] = parseYearMonth(getCurrentDate());
+
+        for (const auto &item: items) {
+            auto [year, month] = parseYearMonth(item.getDate());
+            if (year < currentYear || (year == currentYear && month <= currentMonth)) {
+                itemsBeforeEndOfMonth.push_back(item);
+            }
+        }
+        return itemsBeforeEndOfMonth;
+    }
+
 
     void save() {
         this->sortByDate();
@@ -322,6 +360,102 @@ void displayMenu(const std::vector<std::pair<std::string, std::function<void()> 
 #pragma endregion CLIUtility
 #pragma region Application
 
+
+
+
+
+double calculateOutcome(const std::vector<FinancialItem>& items, const std::vector<bool>& occurrence) {
+    double totalAssets = 0.0;
+    for (size_t i = 0; i < items.size(); ++i) {
+        if (occurrence[i]) {
+            if (items[i].getType() == ItemType::Expense || items[i].getType() == ItemType::Liability) {
+                totalAssets -= items[i].getAmount();
+            } else {
+                totalAssets += items[i].getAmount();
+            }
+        }
+    }
+    return totalAssets;
+}
+
+double calculateProbability(const std::vector<FinancialItem>& items, const std::vector<bool>& occurrence) {
+    double probability = 1.0;
+    for (size_t i = 0; i < items.size(); ++i) {
+        if (occurrence[i]) {
+            probability *= items[i].getProbability();
+        } else {
+            probability *= (1 - items[i].getProbability());
+        }
+    }
+    return probability;
+}
+
+std::vector<KeyValuePair>  evaluateScenarios(const std::vector<FinancialItem>& items) {
+    std::vector<FinancialItem> variableItems; // Items with probability less than 1
+    double fixedAssets = 0.0; // Total assets from items with probability 1
+
+    // Separate fixed and variable items
+    for (const auto& item : items) {
+        if (item.getProbability() == 0.0) {
+            continue; // Skip impossible events
+        }
+        if (item.getProbability() == 1.0) {
+            if (item.getType() == ItemType::Expense || item.getType() == ItemType::Liability) {
+                fixedAssets -= item.getAmount(); // Subtract fixed expenses or liabilities
+            } else {
+                fixedAssets += item.getAmount(); // Add fixed assets or income
+            }
+        } else {
+            variableItems.push_back(item);
+        }
+    }
+
+    size_t n = variableItems.size();
+    double maxAssets = -std::numeric_limits<double>::infinity();
+    double minAssets = std::numeric_limits<double>::infinity();
+    double maxProbability = 0.0;
+    double minProbability = 1.0;
+    double mostLikelyAssets = 0.0;
+    double leastLikelyAssets = 0.0;
+    // Iterate over all possible combinations of variable items
+
+    for (size_t i = 0; i < (1 << n); ++i) {
+        std::vector<bool> occurrence(n);
+        for (size_t itemIndex = 0; itemIndex < n; ++itemIndex) {
+            // Check if the bit at position itemIndex is set in combinationIndex
+            bool isItemIncluded = (i & (1 << itemIndex)) != 0; // HOW THIS WORK????????
+            occurrence[itemIndex] = isItemIncluded;
+        }
+
+        double currentAssets = fixedAssets + calculateOutcome(variableItems, occurrence);
+        double currentProbability = calculateProbability(variableItems, occurrence);
+
+        // Update best and worst asset scenarios
+        if (currentAssets > maxAssets) maxAssets = currentAssets;
+        if (currentAssets < minAssets) minAssets = currentAssets;
+
+        // Update most and least likely scenarios
+        if (currentProbability > maxProbability) {
+            maxProbability = currentProbability;
+            mostLikelyAssets = currentAssets;
+        }
+        if (currentProbability < minProbability) {
+            minProbability = currentProbability;
+            leastLikelyAssets = currentAssets;
+        }
+    }
+
+    // Output results
+    std::vector<KeyValuePair> executiveSummary = std::vector<KeyValuePair>();
+
+    executiveSummary.emplace_back("Best Case Scenario", ": " + formatCurrency(maxAssets));
+    executiveSummary.emplace_back("Worst Case Scenario", ": " + formatCurrency(minAssets));
+    executiveSummary.emplace_back("Most Likely Outcome", ": " + formatCurrency(mostLikelyAssets) + " (" + formatToPercentage(maxProbability) + ")");
+    executiveSummary.emplace_back("Least Likely Outcome", ": " + formatCurrency(leastLikelyAssets) + " (" + formatToPercentage(minProbability) + ")");
+
+    return executiveSummary;
+}
+
 void viewDetailedSummary() {
     // Get top category for expense
     std::unordered_map<std::string, double> categoryToAmount;
@@ -329,9 +463,9 @@ void viewDetailedSummary() {
     double totalAssets = 0.0;
 
 
-    for (const auto &item: globalState.getItemsThisMonth()) {
+    for (const auto &item: globalState.getAllItemsBeforeEndOfMonth()) {
         if (item.getType() == ItemType::Expense) {
-            categoryToAmount[item.getTypeName()] += item.getAmount();
+            categoryToAmount[item.getCategory()] += item.getAmount();
             totalAssets -= item.getAmount();
         }
 
@@ -358,11 +492,16 @@ void viewDetailedSummary() {
         ossTop3ExpenseCategories << i + 1 << ". " << sortedCategories[i].first << ": " << formatCurrency(
             sortedCategories[i].second) << "\n";
     }
-    executiveSummary.emplace_back("Top 3 Expense Categories", ": \n" + ossTop3ExpenseCategories.str());
+    executiveSummary.emplace_back("Summary This Month", "");
+    executiveSummary.emplace_back("Top 3 Expense by Categories", ": \n" + ossTop3ExpenseCategories.str());
 
     // Print projected end of month assets
     executiveSummary.emplace_back("Projected End of Month Assets", ": " + formatCurrency(totalAssets));
 
+
+    auto scenarioResults = evaluateScenarios(globalState.getItems());
+    // merge the two vectors
+    executiveSummary.insert(executiveSummary.end(), scenarioResults.begin(), scenarioResults.end());
     printWithPadding(executiveSummary);
 }
 
