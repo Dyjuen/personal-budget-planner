@@ -199,6 +199,11 @@ struct GlobalState {
         load();
     }
 
+    void sortByDate() {
+        std::sort(items.begin(), items.end(), [](const FinancialItem &a, const FinancialItem &b) {
+            return a.getDate() < b.getDate();
+        });
+    }
 
     [[nodiscard]] std::vector<FinancialItem> getItems() const {
         return items;
@@ -218,7 +223,8 @@ struct GlobalState {
         return itemsThisMonth;
     }
 
-    void save() const {
+    void save() {
+        this->sortByDate();
         serializeAllItems(items, "financial_items.csv");
     }
 
@@ -226,6 +232,7 @@ struct GlobalState {
         try {
             items.clear();
             deserializeAllItems(items, "financial_items.csv");
+            this->sortByDate();
         } catch (const std::exception &e) {
             std::cerr << "Error loading items: " << e.what() << std::endl;
         }
