@@ -76,8 +76,16 @@ std::string formatIDR(double amount) {
     std::ostringstream oss;
     oss << std::fixed << std::setprecision(0) << amount;
     std::string numStr = oss.str();
-    int n = numStr.length() - 1;
-    int insertPosition = n - 2;
+
+    // Check if the number is negative
+    bool isNegative = (amount < 0);
+    int n = numStr.length();
+    int insertPosition = n - 3;
+
+    // Adjust insert position if the number is negative
+    if (isNegative) {
+        insertPosition -= 1;
+    }
 
     while (insertPosition > 0) {
         numStr.insert(insertPosition, ".");
@@ -248,6 +256,7 @@ struct GlobalState {
         }
         return itemsThisMonth;
     }
+
     [[nodiscard]] std::vector<FinancialItem> getAllItemsBeforeEndOfMonth() const {
         std::vector<FinancialItem> itemsBeforeEndOfMonth;
         // Get current date
@@ -361,10 +370,7 @@ void displayMenu(const std::vector<std::pair<std::string, std::function<void()> 
 #pragma region Application
 
 
-
-
-
-double calculateOutcome(const std::vector<FinancialItem>& items, const std::vector<bool>& occurrence) {
+double calculateOutcome(const std::vector<FinancialItem> &items, const std::vector<bool> &occurrence) {
     double totalAssets = 0.0;
     for (size_t i = 0; i < items.size(); ++i) {
         if (occurrence[i]) {
@@ -378,7 +384,7 @@ double calculateOutcome(const std::vector<FinancialItem>& items, const std::vect
     return totalAssets;
 }
 
-double calculateProbability(const std::vector<FinancialItem>& items, const std::vector<bool>& occurrence) {
+double calculateProbability(const std::vector<FinancialItem> &items, const std::vector<bool> &occurrence) {
     double probability = 1.0;
     for (size_t i = 0; i < items.size(); ++i) {
         if (occurrence[i]) {
@@ -390,12 +396,12 @@ double calculateProbability(const std::vector<FinancialItem>& items, const std::
     return probability;
 }
 
-std::vector<KeyValuePair>  evaluateScenarios(const std::vector<FinancialItem>& items) {
+std::vector<KeyValuePair> evaluateScenarios(const std::vector<FinancialItem> &items) {
     std::vector<FinancialItem> variableItems; // Items with probability less than 1
     double fixedAssets = 0.0; // Total assets from items with probability 1
 
     // Separate fixed and variable items
-    for (const auto& item : items) {
+    for (const auto &item: items) {
         if (item.getProbability() == 0.0) {
             continue; // Skip impossible events
         }
@@ -447,11 +453,16 @@ std::vector<KeyValuePair>  evaluateScenarios(const std::vector<FinancialItem>& i
 
     // Output results
     std::vector<KeyValuePair> executiveSummary = std::vector<KeyValuePair>();
-
+    executiveSummary.emplace_back("", "");
+    executiveSummary.emplace_back("Scenarios Evaluation of All Budget Items", "");
     executiveSummary.emplace_back("Best Case Scenario", ": " + formatCurrency(maxAssets));
     executiveSummary.emplace_back("Worst Case Scenario", ": " + formatCurrency(minAssets));
-    executiveSummary.emplace_back("Most Likely Outcome", ": " + formatCurrency(mostLikelyAssets) + " (" + formatToPercentage(maxProbability) + ")");
-    executiveSummary.emplace_back("Least Likely Outcome", ": " + formatCurrency(leastLikelyAssets) + " (" + formatToPercentage(minProbability) + ")");
+    executiveSummary.emplace_back("Most Likely Outcome",
+                                  ": " + formatCurrency(mostLikelyAssets) + " (" + formatToPercentage(maxProbability) +
+                                  ")");
+    executiveSummary.emplace_back("Least Likely Outcome",
+                                  ": " + formatCurrency(leastLikelyAssets) + " (" + formatToPercentage(minProbability) +
+                                  ")");
 
     return executiveSummary;
 }
