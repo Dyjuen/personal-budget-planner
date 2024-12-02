@@ -277,7 +277,7 @@ struct GlobalState {
         try {
             serializeAllItems(items, "financial_items.csv");
             serializeAllItems(items, "financial_items_backup.csv");
-        }catch (const std::exception &e) {
+        } catch (const std::exception &e) {
             std::cerr << "Error saving items: " << e.what() << std::endl;
         }
     }
