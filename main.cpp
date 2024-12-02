@@ -421,8 +421,8 @@ std::vector<KeyValuePair> evaluateScenarios(const std::vector<FinancialItem> &it
     double minAssets = std::numeric_limits<double>::infinity();
     double maxProbability = 0.0;
     double minProbability = 1.0;
-    double mostLikelyAssets = 0.0;
-    double leastLikelyAssets = 0.0;
+    double mostLikelyAssets = fixedAssets;
+    double leastLikelyAssets = fixedAssets;
     // Iterate over all possible combinations of variable items
 
     for (size_t i = 0; i < (1 << n); ++i) {
