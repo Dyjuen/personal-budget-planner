@@ -274,7 +274,12 @@ struct GlobalState {
 
     void save() {
         this->sortByDate();
-        serializeAllItems(items, "financial_items.csv");
+        try {
+            serializeAllItems(items, "financial_items.csv");
+            serializeAllItems(items, "financial_items_backup.csv");
+        }catch (const std::exception &e) {
+            std::cerr << "Error saving items: " << e.what() << std::endl;
+        }
     }
 
     void load() {
