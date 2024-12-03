@@ -477,21 +477,25 @@ void viewDetailedSummary() {
     // Get top category for expense
     std::unordered_map<std::string, double> categoryToAmount;
     // Projected end of month assets
-    double totalAssets = 0.0;
+    double totalAssets = 0.0, currentAssets = 0.0;
 
 
     for (const auto &item: globalState.getAllItemsBeforeEndOfMonth()) {
+        bool isFuture = item.getDate() > getCurrentDate();
         if (item.getType() == ItemType::Expense) {
             categoryToAmount[item.getCategory()] += item.getAmount();
             totalAssets -= item.getAmount();
+            if (!isFuture) currentAssets -= item.getAmount();
         }
 
         if (item.getType() == ItemType::Income) {
             totalAssets += item.getAmount();
+            if (!isFuture) currentAssets += item.getAmount();
         }
 
         if (item.getType() == ItemType::Asset) {
             totalAssets += item.getAmount();
+            if (!isFuture) currentAssets += item.getAmount();
         }
     }
 
@@ -514,6 +518,7 @@ void viewDetailedSummary() {
 
     // Print projected end of month assets
     executiveSummary.emplace_back("Projected End of Month Assets", ": " + formatCurrency(totalAssets));
+    executiveSummary.emplace_back("Current Assets", ": " + formatCurrency(currentAssets));
 
 
     auto scenarioResults = evaluateScenarios(globalState.getItems());
