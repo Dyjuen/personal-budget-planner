@@ -420,6 +420,18 @@ std::vector<KeyValuePair> evaluateScenarios(const std::vector<FinancialItem> &it
 
     // Iterate over all possible combinations of variable items
     for (size_t i = 0; i < (1 << n); ++i) {
+        /**
+        For n = 3, the combinations are:
+
+i = 0 (binary 000): occurrence = {false, false, false}
+i = 1 (binary 001): occurrence = {true, false, false}
+i = 2 (binary 010): occurrence = {false, true, false}
+i = 3 (binary 011): occurrence = {true, true, false}
+i = 4 (binary 100): occurrence = {false, false, true}
+i = 5 (binary 101): occurrence = {true, false, true}
+i = 6 (binary 110): occurrence = {false, true, true}
+i = 7 (binary 111): occurrence = {true, true, true}
+         */
         std::vector<bool> occurrence(n);
         for (size_t itemIndex = 0; itemIndex < n; ++itemIndex) {
             bool isItemIncluded = (i & (1 << itemIndex)) != 0; // Check if the bit is set
