@@ -419,7 +419,10 @@ std::vector<KeyValuePair> evaluateScenarios(const std::vector<FinancialItem> &it
     double leastLikelyAssets = fixedAssets;
 
     // Iterate over all possible combinations of variable items
-    for (size_t i = 0; i < (1 << n); ++i) {
+
+    // If n = 3, then 1 in binary is 0001.
+    // Shifting left by 3 positions gives 1000, which is 8 in decimal, equivalent to 2^3
+    for (size_t i = 0; i < (1 << n); ++i) { //     //  (from 0 to 2^n - 1):
         /**
         For n = 3, the combinations are:
 
@@ -434,6 +437,20 @@ i = 7 (binary 111): occurrence = {true, true, true}
          */
         std::vector<bool> occurrence(n);
         for (size_t itemIndex = 0; itemIndex < n; ++itemIndex) {
+            // Suppose i = 5 (which is 0101 in binary) and itemIndex = 2:
+            /*
+Step 1: Calculate 1 << itemIndex:
+1 << 2 gives 0100.
+
+Step 2: Perform i & (1 << itemIndex):
+0101 (binary for i)
+0100 (binary for 1 << 2)
+
+Result: 0100 (since only the third bit is 1 in both)
+Step 3: Check != 0:
+
+The result 0100 is not zero, so isItemIncluded is true.
+            */
             bool isItemIncluded = (i & (1 << itemIndex)) != 0; // Check if the bit is set
             occurrence[itemIndex] = isItemIncluded;
         }
