@@ -425,7 +425,7 @@ std::vector<KeyValuePair> evaluateScenarios(const std::vector<FinancialItem> &it
     for (size_t i = 0; i < (1 << n); ++i) { //     //  (from 0 to 2^n - 1):
         /**
         For n = 3, the combinations are:
-
+                        financial item1  item2   item3
 i = 0 (binary 000): occurrence = {false, false, false}
 i = 1 (binary 001): occurrence = {true, false, false}
 i = 2 (binary 010): occurrence = {false, true, false}
