@@ -234,9 +234,30 @@ struct GlobalState {
     }
 
     void sortByDate() {
-        std::sort(items.begin(), items.end(), [](const FinancialItem &a, const FinancialItem &b) {
-            return a.getDate() < b.getDate();
-        });
+        /**
+        *
+        Insertion Sort: This algorithm builds the final sorted array one item at a time. It is much less efficient on large lists than more advanced algorithms such as quicksort, heapsort, or merge sort.
+
+        Algorithm Steps:
+
+        Start from the second element (index 1) and assume the first element is sorted.
+        Compare the current element with the elements in the sorted part.
+        Shift all elements larger than the current element to the right.
+        Insert the current element into its correct position in the sorted part.
+        Repeat for all elements.
+        */
+        for (size_t i = 1; i < items.size(); ++i) {
+            FinancialItem key = items[i];
+            size_t j = i;
+
+            // Move elements of items[0..i-1], that are greater than key, to one position ahead
+            // of their current position
+            while (j > 0 && items[j - 1].getDate() > key.getDate()) {
+                items[j] = items[j - 1];
+                --j;
+            }
+            items[j] = key;
+        }
     }
 
     [[nodiscard]] std::vector<FinancialItem> getItems() const {
