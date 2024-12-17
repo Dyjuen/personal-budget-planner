@@ -608,7 +608,7 @@ void addTransaction() {
     std::string name, category, date;
     double amount = 0, probability = 1.0;
     int typeInt;
-
+    std::cout << "Leave blank for [default value]\n";
     getInput("type (0: Asset, 1: Liability, 2: Income, 3: Expense)", &typeInt, 0);
     getInput("name", &name, std::string("Unnamed"));
     inputTransactionDetails(category, amount, date, probability);
@@ -622,6 +622,7 @@ void addTransaction() {
 void editTransaction() {
     std::cout << "Editing transaction...\n";
     std::string name;
+    std::cout << "Leave blank for [default value]\n";
     getInput("the name of the transaction to edit", &name, std::string(""));
 
     for (auto &item: globalState.items) {
@@ -645,6 +646,7 @@ void editTransaction() {
 void deleteTransaction() {
     std::cout << "Deleting transaction...\n";
     std::string name;
+    std::cout << "Leave blank for [default value]\n";
     getInput("the name of the transaction to delete", &name, std::string(""));
 
     auto it = std::remove_if(globalState.items.begin(), globalState.items.end(),
