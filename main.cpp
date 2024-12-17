@@ -626,6 +626,7 @@ void editTransaction() {
 
     for (auto &item: globalState.items) {
         if (item.getName() == name) {
+            // Sequential Search
             std::string newCategory = item.getTypeName();
             std::string newDate = item.getDate();
             double newAmount = item.getAmount();
